@@ -3,4 +3,4 @@ project(fd)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(fd main.cpp)
+add_executable(fd main.cpp Table.cpp Table.h)

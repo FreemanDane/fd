@@ -1,6 +1,7 @@
-#include <iostream>
+#include "Table.h"
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+    Table table = readData("test/test_data.txt");
+    Table table_t = transpose(table);
     return 0;
 }
