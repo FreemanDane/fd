@@ -3,4 +3,8 @@ project(fd)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(fd main.cpp Table.cpp Table.h)
+add_subdirectory(table)
+
+add_executable(fd main.cpp)
+
+target_link_libraries(fd table)

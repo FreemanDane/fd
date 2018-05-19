@@ -1,4 +1,4 @@
-#include "Table.h"
+#include "table/Table.h"
 
 int main() {
     Table table = readData("test/test_data.txt");
