@@ -21,24 +21,24 @@ enum category
 class ColumnCombination
 {
 private:
-    int combination;
-    const int total;
+    unsigned combination;
+    unsigned total;
     category ctg;
     Table *tbl;
 public:
-    ColumnCombination(Table *);
-    ColumnCombination(int, Table *);
+    explicit ColumnCombination(Table *);
+    ColumnCombination(unsigned, Table *);
     ColumnCombination(const ColumnCombination &);
-    ~ColumnCombination();
-    int operator[] (int);
-    int getCombination();
+    ~ColumnCombination() = default;
+    int operator[] (unsigned);
+    unsigned size();
+    unsigned getCombination();
     friend ColumnCombination operator+(const ColumnCombination &, const ColumnCombination &);
     friend ColumnCombination operator*(const ColumnCombination &, const ColumnCombination &);
     friend ColumnCombination operator!(const ColumnCombination &);
     ColumnCombination intersection(const ColumnCombination &);
     ColumnCombination convergence(const ColumnCombination &);
     ColumnCombination complement();
-    void computePartition(const ColumnCombination &, const ColumnCombination &);
     category getCategory();
     void setCategory(category c);
 };

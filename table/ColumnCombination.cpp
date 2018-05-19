@@ -7,14 +7,14 @@
 ColumnCombination::ColumnCombination(Table *t) {
     combination = 0;
     tbl = t;
-    total = (1 << t->size()) - 1;
-    ctg = None;
+    total = (1U << t->size()) - 1;
+    ctg = NONE;
 }
 
-ColumnCombination::ColumnCombination(int cb, Table *t) {
+ColumnCombination::ColumnCombination(unsigned cb, Table *t) {
     combination = cb;
     tbl = t;
-    total = (1 << t->size()) - 1;
+    total = (1U << t->size()) - 1;
     ctg = NONE;
 }
 
@@ -25,13 +25,20 @@ ColumnCombination::ColumnCombination(const ColumnCombination & cc) {
     ctg = cc.ctg;
 }
 
-ColumnCombination::~ColumnCombination() {}
-
-int ColumnCombination::operator[](int index) {
-    return (combination >> index) & 1;
+int ColumnCombination::operator[](unsigned index) {
+    return (combination >> index) & 1U;
 }
 
-int ColumnCombination::getCombination() {
+unsigned ColumnCombination::size() {
+    unsigned result = 0, cc = combination;
+    while (cc != 0){
+        result += cc & 1u;
+        cc = cc >> 1u;
+    }
+
+}
+
+unsigned ColumnCombination::getCombination() {
     return combination;
 }
 
@@ -45,4 +52,24 @@ ColumnCombination operator*(const ColumnCombination & c1, const ColumnCombinatio
 
 ColumnCombination operator!(const ColumnCombination & c){
     return ColumnCombination(~c.combination & c.total, c.tbl);
+}
+
+ColumnCombination ColumnCombination::intersection(const ColumnCombination & c) {
+    return ColumnCombination((combination & c.combination), tbl);
+}
+
+ColumnCombination ColumnCombination::convergence(const ColumnCombination & c) {
+    return ColumnCombination((combination | c.combination), tbl);
+}
+
+ColumnCombination ColumnCombination::complement() {
+    return ColumnCombination((~combination) & total, tbl);
+}
+
+category ColumnCombination::getCategory() {
+    return ctg;
+}
+
+void ColumnCombination::setCategory(category c) {
+    ctg = c;
 }
