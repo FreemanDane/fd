@@ -7,23 +7,12 @@
 
 #include "Table.h"
 
-enum category
-{
-    NONE,
-    DEPENDENCY,
-    MINIMAL_DEPENDENCY,
-    CANDIDATE_MINIMAL_DEPENDENCY,
-    NON_DEPENDENCY,
-    MAXIMAL_NON_DEPENDENCY,
-    CANDIDATE_MAXIMAL_DENPENDENCY
-};
-
 class ColumnCombination
 {
 private:
     unsigned combination;
     unsigned total;
-    category ctg;
+    int msize;
     Table *tbl;
 public:
     explicit ColumnCombination(Table *);
@@ -33,17 +22,20 @@ public:
     int operator[] (unsigned) const;
     void add(unsigned index);
     void remove(unsigned index);
+    Table *getTable() const;
+    bool isSubset(const ColumnCombination &) const;
+    bool isSuperset(const ColumnCombination &) const;
     unsigned size() const;
     unsigned maxsize() const;
     unsigned getCombination() const;
+    friend ColumnCombination operator/(const ColumnCombination &, const ColumnCombination &);
     friend ColumnCombination operator+(const ColumnCombination &, const ColumnCombination &);
     friend ColumnCombination operator*(const ColumnCombination &, const ColumnCombination &);
     friend ColumnCombination operator!(const ColumnCombination &) ;
+    friend bool operator==(const ColumnCombination &, const ColumnCombination &);
     ColumnCombination intersection(const ColumnCombination &) const;
     ColumnCombination convergence(const ColumnCombination &) const;
     ColumnCombination complement() const;
-    category getCategory() const;
-    void setCategory(category c);
 };
 
 #endif //FD_COLUMNCOMBINATION_H

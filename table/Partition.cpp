@@ -49,9 +49,9 @@ Partition getPartition(const Partition & p1, const Partition & p2, const Table &
             while (iter1 != vv1.end() && iter2 != vv2.end()) {
                 if (*iter1 < *iter2)
                     ++iter1;
-                if (*iter1 > *iter2)
+                else if (*iter1 > *iter2)
                     ++iter2;
-                if (*iter1 == *iter2) {
+                else if (*iter1 == *iter2) {
                     positions.push_back(*iter1);
                     ++iter1;
                     ++iter2;

@@ -4,29 +4,35 @@
 
 #include "FunctionalDependency.h"
 #include <string>
+#include <sstream>
 
+using std::stringstream;
 using std::string;
 
 FunctionalDependency::FunctionalDependency(const ColumnCombination & l, const ColumnCombination & r) : left(l), right(r) {}
 
 ofstream & operator << (ofstream & fout, FunctionalDependency fd){
-    string result = "";
+    string result;
     size_t len = fd.left.maxsize();
     for (int i = 0; i < len; ++i) {
         if (fd.left[i] == 1) {
             if (result.length() != 0) {
-                result += ' ';
+                result.push_back(' ');
             }
-            result += ('1' + i);
+            stringstream ss;
+            ss << i + 1;
+            result += ss.str();
         }
     }
     result += "->";
     for (int i = 0; i < len; ++i) {
         if (fd.right[i] == 1) {
             if (result.length() != 0) {
-                result += ' ';
+                result.push_back(' ');
             }
-            result += ('1' + i);
+            stringstream ss;
+            ss << i + 1;
+            result += ss.str();
         }
     }
     fout << result;

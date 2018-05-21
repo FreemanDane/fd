@@ -5,26 +5,24 @@
 #include "ColumnCombination.h"
 
 ColumnCombination::ColumnCombination(Table *t) {
-    auto msize = (*tbl)[0].size();
+    msize = (*t)[0].size();
     combination = 0;
     tbl = t;
     total = (1U << msize) - 1;
-    ctg = NONE;
 }
 
 ColumnCombination::ColumnCombination(unsigned cb, Table *t) {
-    auto msize = (*tbl)[0].size();
+    msize = (*t)[0].size();
     combination = cb;
     tbl = t;
     total = (1U << msize) - 1;
-    ctg = NONE;
 }
 
 ColumnCombination::ColumnCombination(const ColumnCombination & cc) {
     combination = cc.combination;
     tbl = cc.tbl;
     total = cc.total;
-    ctg = cc.ctg;
+    msize = cc.msize;
 }
 
 int ColumnCombination::operator[](unsigned index) const {
@@ -41,7 +39,7 @@ unsigned ColumnCombination::size() const {
 }
 
 unsigned ColumnCombination::maxsize() const {
-    return (*tbl)[0].size();
+    return msize;
 }
 
 unsigned ColumnCombination::getCombination() const {
@@ -72,18 +70,30 @@ ColumnCombination ColumnCombination::complement() const {
     return ColumnCombination((~combination) & total, tbl);
 }
 
-category ColumnCombination::getCategory() const {
-    return ctg;
-}
-
-void ColumnCombination::setCategory(category c) {
-    ctg = c;
-}
-
 void ColumnCombination::add(unsigned index) {
     combination |= (1u << index);
 }
 
 void ColumnCombination::remove(unsigned index) {
     combination &= ~(1u << index);
+}
+
+Table* ColumnCombination::getTable() const {
+    return tbl;
+}
+
+bool ColumnCombination::isSubset(const ColumnCombination & c) const {
+    return (combination & c.combination) == combination;
+}
+
+bool ColumnCombination::isSuperset(const ColumnCombination & c) const {
+    return (combination & c.combination) == c.combination;
+}
+
+ColumnCombination operator/(const ColumnCombination & c1, const ColumnCombination & c2) {
+    return ColumnCombination(c1.combination - (c1.combination & c2.combination), c1.tbl);
+}
+
+bool operator==(const ColumnCombination & c1, const ColumnCombination & c2) {
+    return c1.combination == c2.combination;
 }
