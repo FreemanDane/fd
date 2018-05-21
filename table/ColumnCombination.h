@@ -30,16 +30,19 @@ public:
     ColumnCombination(unsigned, Table *);
     ColumnCombination(const ColumnCombination &);
     ~ColumnCombination() = default;
-    int operator[] (unsigned);
-    unsigned size();
-    unsigned getCombination();
+    int operator[] (unsigned) const;
+    void add(unsigned index);
+    void remove(unsigned index);
+    unsigned size() const;
+    unsigned maxsize() const;
+    unsigned getCombination() const;
     friend ColumnCombination operator+(const ColumnCombination &, const ColumnCombination &);
     friend ColumnCombination operator*(const ColumnCombination &, const ColumnCombination &);
-    friend ColumnCombination operator!(const ColumnCombination &);
-    ColumnCombination intersection(const ColumnCombination &);
-    ColumnCombination convergence(const ColumnCombination &);
-    ColumnCombination complement();
-    category getCategory();
+    friend ColumnCombination operator!(const ColumnCombination &) ;
+    ColumnCombination intersection(const ColumnCombination &) const;
+    ColumnCombination convergence(const ColumnCombination &) const;
+    ColumnCombination complement() const;
+    category getCategory() const;
     void setCategory(category c);
 };
 

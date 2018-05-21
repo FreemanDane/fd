@@ -37,7 +37,7 @@ Partition getPartition(int pos, const Table & tbl) {
     return result;
 }
 
-Partition operator*(const Partition & p1, const Partition & p2, const Table & tbl) {
+Partition getPartition(const Partition & p1, const Partition & p2, const Table & tbl) {
     vector<vector<int>> v1 = p1.parts, v2 = p2.parts;
     Partition result;
     size_t s = 0;
@@ -66,4 +66,34 @@ Partition operator*(const Partition & p1, const Partition & p2, const Table & tb
     size_t num_data = tbl.size();
     result.size = result.parts.size() + num_data - s;
     return result;
+}
+
+bool operator == (const Partition & p1, const Partition & p2){
+    if (p1.size != p2.size) {
+        return false;
+    }
+    if (p1.parts.size() != p2.parts.size()) {
+        return false;
+    }
+    for (auto pt1 : p1.parts) {
+        bool find = false;
+        for (auto pt2 : p2.parts) {
+            if (pt1.size() != pt2.size()) {
+                continue;
+            }
+            if (pt1[0] != pt2[0]) {
+                continue;
+            }
+            for (int i = 0; i < pt1.size(); ++i) {
+                if (pt1[i] != pt2[i]) {
+                    return false;
+                }
+            }
+            find = true;
+        }
+        if (!find) {
+            return false;
+        }
+    }
+    return true;
 }

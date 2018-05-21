@@ -16,6 +16,7 @@ struct Partition
 };
 
 Partition getPartition(int pos, const Table & tbl);
-Partition operator*(const Partition &, const Partition &, const Table & tbl);
+Partition getPartition(const Partition &, const Partition &, const Table & tb);
+bool operator == (const Partition &, const Partition &);
 
 #endif //FD_PARTITION_H
