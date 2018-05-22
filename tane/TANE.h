@@ -5,7 +5,8 @@
 #ifndef FD_TANE_H
 #define FD_TANE_H
 
-#include "table/table.h"
+#include "../table/table.h"
+#include "../table/Partition.h"
 #include <unordered_map>
 #include <unordered_set>
 
@@ -40,7 +41,6 @@ public:
 };
 
 class TANE {
-    typedef std::vector <std::vector<int>> EquivalentRows;
 
 public:
     TANE (Table& t);
@@ -52,16 +52,13 @@ private:
     std::unordered_map <AttrIndexes, AttrIndexes, AttrIndexesHasher> RHS_plus;
     AttrIndexes R;
     std::vector <Result> results;
-    std::unordered_map <AttrIndexes, EquivalentRows,  AttrIndexesHasher> attr_to_eqclasses;
+    std::unordered_map <AttrIndexes, Partition, AttrIndexesHasher> partition_map;
 
     void compute_dependencies(Level& l);
     void prune(Level& l);
     Level generate_next_level(const Level& L);
     bool is_prefix(const AttrIndexes& a, const AttrIndexes& b);
     bool determine(const AttrIndexes& x, const AttrIndexes& y);
-
-    // Get equivalence classes on attributes `indexes`(each class contain at least two elements)
-    EquivalentRows compute_eq_rows(const AttrIndexes& indexes);
 };
 
 

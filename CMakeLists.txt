@@ -7,7 +7,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O2")
 
 add_subdirectory(table)
 add_subdirectory(dfd)
+add_subdirectory(tane)
 
-add_executable(fd main.cpp TANE.cpp TANE.h util.h)
+add_executable(fd main.cpp util.h)
 
-target_link_libraries(fd table dfd)
+target_link_libraries(fd table dfd tane)

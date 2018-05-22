@@ -7,10 +7,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iostream>
-#include "util.h"
-
-
-//#define COUNT_CALCULATE
+#include "../util.h"
 
 
 void AttrIndexes::insert_into(int new_index) {
@@ -95,23 +92,14 @@ void TANE::compute() {
         a_set.insert_into(a);
         L.l_l.insert(a_set);
     }
-
-    EquivalentRows equivalence_classes;
-    std::vector <int> all_rows;
-    for (int i = 0; i < table.size(); ++i)
-        all_rows.push_back(i);
-    equivalence_classes.push_back(all_rows);
-    attr_to_eqclasses[empty] = equivalence_classes;
-
+    for (auto i : R) {
+        AttrIndexes i_index;
+        i_index.insert_into(i);
+        partition_map[i_index] = getPartition(i, table);
+    }
     while (!L.l_l.empty()) {
-#ifdef COUNT_CALCULATE
-        std::cout << L.l_l.size() << "\t" << L.l_l.begin() -> size() << std::endl;
-#endif
         compute_dependencies(L);
         prune(L);
-#ifdef COUNT_CALCULATE
-        std::cout << L.l_l.size() << "\t" << L.l_l.begin() -> size() << std::endl;
-#endif
         L = generate_next_level(L);
     }
 }
@@ -133,17 +121,11 @@ void TANE::compute_dependencies(Level &l) {
         }
         RHS_plus[x] = temp;
     }
-#ifdef COUNT_CALCULATE
-    int count = 0;
-#endif
     for (auto x: l.l_l) {
         AttrIndexes RHS_x_intersect_x = RHS_plus[x].intersection(x);
         for(auto a : RHS_x_intersect_x) {
             AttrIndexes a_set;
             a_set.insert_into(a);
-#ifdef COUNT_CALCULATE
-            ++count;
-#endif
             if(determine(x.difference(a_set), a_set)) {
                 results.push_back(Result(x.difference(a_set), a_set));
                 RHS_plus[x] = RHS_plus[x].difference(a_set);
@@ -151,9 +133,6 @@ void TANE::compute_dependencies(Level &l) {
             }
         }
     }
-#ifdef COUNT_CALCULATE
-    std::cout << count << std::endl;
-#endif
 }
 
 void TANE::prune(Level &l) {
@@ -200,50 +179,12 @@ bool TANE::is_prefix(const AttrIndexes& a, const AttrIndexes& b) {
     return true;
 }
 
-bool TANE::determine(const AttrIndexes& x, const AttrIndexes& y){
-    if (x.empty())
-        return false;
-    EquivalentRows equivalence_classes;
-    equivalence_classes = compute_eq_rows(x);
-    for (auto equivalence_class : equivalence_classes) {
-        for (auto i = equivalence_class.begin(); i != std::prev(equivalence_class.end()); ++i) {
-            int row = *i, next_row = *std::next(i);
-            for (auto j : y) {
-                if (table[row][j] != table[next_row][j])
-                    return false;
-            }
-        }
+bool TANE::determine(const AttrIndexes& x, const AttrIndexes& y) {
+    AttrIndexes x_union_y = x.merge(y);
+    if (partition_map.find(x_union_y) == partition_map.end()) {
+        partition_map[x_union_y] = getPartition(partition_map[x], partition_map[y], table);
     }
-    return true;
-}
-
-TANE::EquivalentRows TANE::compute_eq_rows(const AttrIndexes& indexes) {
-    int prefix_size = indexes.size() - 1;
-    AttrIndexes prefix = indexes;
-    EquivalentRows equivalence_classes;
-    while(prefix_size >= 0) {
-        prefix.resize(prefix_size);
-        if (attr_to_eqclasses.find(prefix) != attr_to_eqclasses.end()) {
-            equivalence_classes = attr_to_eqclasses[prefix];
-            break;
-        }
-        --prefix_size;
-    }
-    for (int i = prefix_size; i < indexes.size(); ++i) {
-        std::vector <std::vector<int>> equivalence_classes_next;
-        for (auto equivalence_class : equivalence_classes) {
-            std::unordered_map <std::string, std::vector<int>> row_map;
-            for (auto row : equivalence_class)
-                row_map[table[row][indexes[i]]].push_back(row);
-            for (auto j : row_map) {
-                if (j.second.size() > 1)
-                    equivalence_classes_next.push_back(j.second);
-            }
-        }
-        equivalence_classes = equivalence_classes_next;
-        prefix = indexes;
-        prefix.resize(i + 1);
-        attr_to_eqclasses[prefix] = equivalence_classes;
-    }
-    return equivalence_classes;
+    if(partition_map[x_union_y].size == partition_map[x].size)
+        return true;
+    return false;
 }
