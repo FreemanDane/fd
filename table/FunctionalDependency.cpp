@@ -16,20 +16,16 @@ ofstream & operator << (ofstream & fout, FunctionalDependency fd){
     size_t len = fd.left.maxsize();
     for (int i = 0; i < len; ++i) {
         if (fd.left[i] == 1) {
-            if (result.length() != 0) {
-                result.push_back(' ');
-            }
             stringstream ss;
             ss << i + 1;
             result += ss.str();
+            result.push_back(' ');
         }
     }
     result += "->";
     for (int i = 0; i < len; ++i) {
         if (fd.right[i] == 1) {
-            if (result.length() != 0) {
-                result.push_back(' ');
-            }
+            result.push_back(' ');
             stringstream ss;
             ss << i + 1;
             result += ss.str();

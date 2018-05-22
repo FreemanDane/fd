@@ -5,9 +5,11 @@
 #include "dfd.h"
 #include <fstream>
 #include <stack>
+#include <iostream>
 using std::string;
 using std::ofstream;
 using std::stack;
+using std::cout;
 
 stack<ColumnCombination> nodeStack;
 
@@ -54,6 +56,7 @@ vector<FunctionalDependency> dfdmain(const string & filename) {
         }
         ColumnCombination RHS = ColumnCombination(1 << i, &tbl);
         auto LHSs = findLHSs(RHS, total, parts);
+        cout << "find LHSs of" << RHS.getCombination() << std::endl;
         for (auto LHS : LHSs) {
             result.push_back(FunctionalDependency(LHS, RHS));
         }
@@ -70,7 +73,7 @@ vector<ColumnCombination> findLHSs(ColumnCombination RHS, ColumnCombination tota
     for (int i = 0; i < num_com; ++i) {
         ctg[i] = NOT_VISITED;
     }
-    ctg[0] = static_cast<Category >(0);
+    //ctg[0] = static_cast<Category >(CANDIDATE | MAX_OR_MIN);
     vector<ColumnCombination> seeds;
     for (int i = 0; i < num_col; ++i) {
         if (total[i] == 1 && RHS[i] == 0) {
@@ -84,8 +87,8 @@ vector<ColumnCombination> findLHSs(ColumnCombination RHS, ColumnCombination tota
         do {
             int v = node.getCombination();
             if (ctg[v] != NOT_VISITED) {
-                if (ctg[v] & CANDIDATE != 0) {
-                    if (ctg[v] & DEPENDENCY != 0) {
+                if ((ctg[v] & CANDIDATE) != 0) {
+                    if ((ctg[v] & DEPENDENCY) != 0) {
                         if (isMinimal(node, RHS, ctg, num_col)) {
                             minDeps.push_back(node);
                         }
@@ -102,8 +105,9 @@ vector<ColumnCombination> findLHSs(ColumnCombination RHS, ColumnCombination tota
                 }
             }
             node = pickNextNode(node, RHS, seeds, ctg, minDeps, maxNonDeps, num_col);
-        }while (node.size() != 0);
-        seeds = generateNextSeeds(minDeps, maxNonDeps, num_col, tbl);
+        }while (node.size() != -1);
+        seeds = generateNextSeeds(minDeps, maxNonDeps, RHS, num_col, tbl);
+        //seeds.clear();
     }
     delete [] ctg;
     return minDeps;
@@ -118,7 +122,7 @@ bool isMinimal(const ColumnCombination & left, const ColumnCombination & right, 
         Category c = ctg[left.getCombination() - index];
         if (c == NOT_VISITED || c == NONE)
             return false;
-        if (c & DEPENDENCY != 0) {
+        if ((c & DEPENDENCY) != 0) {
             ctg[left.getCombination()] = DEPENDENCY;
             return false;
         }
@@ -136,7 +140,7 @@ bool isMaximal(const ColumnCombination & left, const ColumnCombination & right, 
         Category c = ctg[left.getCombination() + index];
         if (c == NOT_VISITED || c == NONE)
             return false;
-        if (c & DEPENDENCY == 0) {
+        if ((c & DEPENDENCY) == 0) {
             ctg[left.getCombination()] = static_cast<Category>(0);
             return false;
         }
@@ -153,8 +157,8 @@ void inferCategory(const ColumnCombination & left, const ColumnCombination & rig
         Category c = ctg[left.getCombination() - index];
         if (c == NONE || c == NOT_VISITED)
             continue;
-        if (c & DEPENDENCY != 0) {
-            ctg[left.getCombination()] = static_cast<Category>(MAX_OR_MIN | CANDIDATE | DEPENDENCY);
+        if ((c & DEPENDENCY) != 0) {
+            ctg[left.getCombination()] = DEPENDENCY;
             return;
         }
     }
@@ -165,8 +169,8 @@ void inferCategory(const ColumnCombination & left, const ColumnCombination & rig
         Category c = ctg[left.getCombination() + index];
         if (c == NONE || c == NOT_VISITED)
             continue;
-        if (c & DEPENDENCY == 0) {
-            ctg[left.getCombination()] = static_cast<Category>(MAX_OR_MIN | CANDIDATE);
+        if ((c & DEPENDENCY ) == 0) {
+            ctg[left.getCombination()] = static_cast<Category>(0);
             return;
         }
     }
@@ -237,15 +241,6 @@ ColumnCombination pickNextNode(const ColumnCombination & node, const ColumnCombi
         }
         if (s.size() == 0) {
             minDep.push_back(node);
-            int s = seeds.size();
-            for (int i = 0; i < s; ++i) {
-                if (node == seeds[i]) {
-                    if (i == s - 1)
-                        break;
-                    else
-                        return seeds[i + 1];
-                }
-            }
         } else {
             int r = rand() % s.size();
             nextNode = s[r];
@@ -264,15 +259,6 @@ ColumnCombination pickNextNode(const ColumnCombination & node, const ColumnCombi
         }
         if (s.size() == 0) {
             maxNonDep.push_back(node);
-            int s = seeds.size();
-            for (int i = 0; i < s; ++i) {
-                if (node == seeds[i]) {
-                    if (i == s - 1)
-                        break;
-                    else
-                        return seeds[i + 1];
-                }
-            }
         } else {
             int r = rand() % s.size();
             nextNode = s[r];
@@ -280,22 +266,20 @@ ColumnCombination pickNextNode(const ColumnCombination & node, const ColumnCombi
             return nextNode;
         }
     }
+    if (nodeStack.size() == 0)
+        return ColumnCombination(tbl);
     else {
-        if (nodeStack.size() == 0)
-            return ColumnCombination(tbl);
-        else {
-            nextNode = nodeStack.top();
-            nodeStack.pop();
-            return nextNode;
-        }
+        nextNode = nodeStack.top();
+        nodeStack.pop();
+        return nextNode;
     }
-    return nextNode;
 }
 
-vector<ColumnCombination> generateNextSeeds(vector<ColumnCombination> &minDep, vector<ColumnCombination> &maxNonDep, int num_col, Table *tbl) {
+vector<ColumnCombination> generateNextSeeds(vector<ColumnCombination> &minDep, vector<ColumnCombination> &maxNonDep, const ColumnCombination & target, int num_col, Table *tbl) {
     vector<ColumnCombination> seeds, newSeeds;
     for (auto mdp : maxNonDep) {
         ColumnCombination cmdp = mdp.complement();
+        cmdp = cmdp / target;
         if (seeds.size() == 0) {
             for (int i = 0; i < num_col; ++i) {
                 if (cmdp[i] == 1) {
@@ -318,7 +302,7 @@ vector<ColumnCombination> generateNextSeeds(vector<ColumnCombination> &minDep, v
                 for (auto q = newSeeds.begin(); q != newSeeds.end(); ++q) {
                     if (p == q)
                         continue;
-                    if (p->isSubset(*q)) {
+                    if (p->isSuperset(*q)) {
                         p = newSeeds.erase(p);
                         erase = true;
                         break;

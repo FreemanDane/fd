@@ -14,8 +14,8 @@
 
 
 enum Category {
-    NOT_VISITED = -1,
-    NONE = 1,
+    NOT_VISITED = 0x10,
+    NONE = 0x20,
     CANDIDATE = 0x2,
     DEPENDENCY = 0x4,
     MAX_OR_MIN = 0x8
@@ -29,6 +29,6 @@ void inferCategory(const ColumnCombination & left, const ColumnCombination & rig
 void computePartition(const ColumnCombination & left, const ColumnCombination & right, Partition *parts, Category *ctg, int num_col);
 void getPartition(const ColumnCombination & target, Partition *parts, int num_col);
 ColumnCombination pickNextNode(const ColumnCombination & node, const ColumnCombination & RHS, vector<ColumnCombination> seeds, Category *ctg, vector<ColumnCombination> &minDep, vector<ColumnCombination> &maxNonDep, int num_col);
-std::vector<ColumnCombination> generateNextSeeds(vector<ColumnCombination> &minDep, vector<ColumnCombination> &maxNonDep, int num_col, Table *tbl);
+std::vector<ColumnCombination> generateNextSeeds(vector<ColumnCombination> &minDep, vector<ColumnCombination> &maxNonDep, const ColumnCombination & target, int num_col, Table *tbl);
 
 #endif //FD_DFD_H

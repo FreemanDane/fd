@@ -14,6 +14,7 @@ private:
     unsigned total;
     int msize;
     Table *tbl;
+    bool isNull;
 public:
     explicit ColumnCombination(Table *);
     ColumnCombination(unsigned, Table *);
@@ -25,7 +26,7 @@ public:
     Table *getTable() const;
     bool isSubset(const ColumnCombination &) const;
     bool isSuperset(const ColumnCombination &) const;
-    unsigned size() const;
+    int size() const;
     unsigned maxsize() const;
     unsigned getCombination() const;
     friend ColumnCombination operator/(const ColumnCombination &, const ColumnCombination &);

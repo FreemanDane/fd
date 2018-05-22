@@ -9,6 +9,7 @@ ColumnCombination::ColumnCombination(Table *t) {
     combination = 0;
     tbl = t;
     total = (1U << msize) - 1;
+    isNull = true;
 }
 
 ColumnCombination::ColumnCombination(unsigned cb, Table *t) {
@@ -16,6 +17,7 @@ ColumnCombination::ColumnCombination(unsigned cb, Table *t) {
     combination = cb;
     tbl = t;
     total = (1U << msize) - 1;
+    isNull = false;
 }
 
 ColumnCombination::ColumnCombination(const ColumnCombination & cc) {
@@ -23,19 +25,22 @@ ColumnCombination::ColumnCombination(const ColumnCombination & cc) {
     tbl = cc.tbl;
     total = cc.total;
     msize = cc.msize;
+    isNull = false;
 }
 
 int ColumnCombination::operator[](unsigned index) const {
     return (combination >> index) & 1U;
 }
 
-unsigned ColumnCombination::size() const {
+int ColumnCombination::size() const {
+    if (isNull)
+        return -1;
     unsigned result = 0, cc = combination;
     while (cc != 0){
         result += cc & 1u;
         cc = cc >> 1u;
     }
-
+    return result;
 }
 
 unsigned ColumnCombination::maxsize() const {
