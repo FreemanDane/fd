@@ -27,6 +27,7 @@ vector<FunctionalDependency> dfdmain(const string & filename) {
         int num = 1 << i;
         parts[num] = getPartition(i, tbl);
     }
+    cout << "Compute single partition finally.\n";
     for (int i = 0; i < num_col; ++i) {
         int com1 = 1 << i;
         bool unique = true;
@@ -37,7 +38,7 @@ vector<FunctionalDependency> dfdmain(const string & filename) {
             if (parts[com1 + com2].size == 0) {
                 parts[com1 + com2] = getPartition(parts[com1], parts[com2], tbl);
             }
-            if (parts[com1] == parts[com2] || parts[com1].size != parts[com1 + com2].size)
+            if (parts[com1].size != parts[com1 + com2].size)
                 unique = false;
         }
         if (unique) {
@@ -50,13 +51,11 @@ vector<FunctionalDependency> dfdmain(const string & filename) {
             }
         }
     }
+    cout << "Find unique column finally.\n";
     for (int i = 0; i < num_col; ++i) {
-        if (total[i] == 0) {
-            continue;
-        }
         ColumnCombination RHS = ColumnCombination(1 << i, &tbl);
         auto LHSs = findLHSs(RHS, total, parts);
-        cout << "find LHSs of" << RHS.getCombination() << std::endl;
+        cout << "find LHSs of " << RHS.getCombination() << std::endl;
         for (auto LHS : LHSs) {
             result.push_back(FunctionalDependency(LHS, RHS));
         }
@@ -89,33 +88,33 @@ vector<ColumnCombination> findLHSs(ColumnCombination RHS, ColumnCombination tota
             if (ctg[v] != NOT_VISITED) {
                 if ((ctg[v] & CANDIDATE) != 0) {
                     if ((ctg[v] & DEPENDENCY) != 0) {
-                        if (isMinimal(node, RHS, ctg, num_col)) {
+                        if (isMinimal(node, RHS, total, ctg, num_col)) {
                             minDeps.push_back(node);
                         }
                     } else {
-                        if (isMaximal(node, RHS, ctg, num_col)) {
+                        if (isMaximal(node, RHS, total, ctg, num_col)) {
                             maxNonDeps.push_back(node);
                         }
                     }
                 }
             } else {
-                inferCategory(node, RHS, ctg, num_col);
+                inferCategory(node, RHS, total, ctg, num_col);
                 if (ctg[node.getCombination()] == NONE) {
                     computePartition(node, RHS, parts, ctg, num_col);
                 }
             }
-            node = pickNextNode(node, RHS, seeds, ctg, minDeps, maxNonDeps, num_col);
+            node = pickNextNode(node, RHS, total, seeds, ctg, minDeps, maxNonDeps, num_col);
         }while (node.size() != -1);
-        seeds = generateNextSeeds(minDeps, maxNonDeps, RHS, num_col, tbl);
+        seeds = generateNextSeeds(minDeps, maxNonDeps, total, RHS, num_col, tbl);
         //seeds.clear();
     }
     delete [] ctg;
     return minDeps;
 }
 
-bool isMinimal(const ColumnCombination & left, const ColumnCombination & right, Category *ctg, int num_col) {
+bool isMinimal(const ColumnCombination & left, const ColumnCombination & right, const ColumnCombination & total, Category *ctg, int num_col) {
     for (int i = 0; i < num_col; ++i) {
-        if (left[i] != 1 || right[i] == 1) {
+        if (left[i] != 1 || right[i] == 1 || total[i] == 0) {
             continue;
         }
         int index = 1 << i;
@@ -131,9 +130,9 @@ bool isMinimal(const ColumnCombination & left, const ColumnCombination & right, 
     return true;
 }
 
-bool isMaximal(const ColumnCombination & left, const ColumnCombination & right, Category *ctg, int num_col) {
+bool isMaximal(const ColumnCombination & left, const ColumnCombination & right, const ColumnCombination & total, Category *ctg, int num_col) {
     for (int i = 0; i < num_col; ++i) {
-        if (left[i] == 1 || right[i] == 1) {
+        if (left[i] == 1 || right[i] == 1 || total[i] == 0) {
             continue;
         }
         int index = 1 << i;
@@ -149,9 +148,9 @@ bool isMaximal(const ColumnCombination & left, const ColumnCombination & right, 
     return true;
 }
 
-void inferCategory(const ColumnCombination & left, const ColumnCombination & right, Category *ctg, int num_col){
+void inferCategory(const ColumnCombination & left, const ColumnCombination & right, const ColumnCombination & total, Category *ctg, int num_col){
     for (int i = 0; i < num_col; ++i) {
-        if (left[i] != 1 || right[i] == 1)
+        if (left[i] != 1 || right[i] == 1 || total[i] == 0)
             continue;
         int index = 1 << i;
         Category c = ctg[left.getCombination() - index];
@@ -163,7 +162,7 @@ void inferCategory(const ColumnCombination & left, const ColumnCombination & rig
         }
     }
     for (int i = 0; i < num_col; ++i) {
-        if (left[i] == 1 || right[i] == 1)
+        if (left[i] == 1 || right[i] == 1 || total[i] == 0)
             continue;
         int index = 1 << i;
         Category c = ctg[left.getCombination() + index];
@@ -225,14 +224,14 @@ void computePartition(const ColumnCombination & left, const ColumnCombination & 
     }
 }
 
-ColumnCombination pickNextNode(const ColumnCombination & node, const ColumnCombination & RHS, vector<ColumnCombination> seeds, Category *ctg, vector<ColumnCombination> &minDep, vector<ColumnCombination> &maxNonDep, int num_col) {
+ColumnCombination pickNextNode(const ColumnCombination & node, const ColumnCombination & RHS, const ColumnCombination & total, vector<ColumnCombination> seeds, Category *ctg, vector<ColumnCombination> &minDep, vector<ColumnCombination> &maxNonDep, int num_col) {
     vector<ColumnCombination> s,p;
     int com = node.getCombination();
     Table *tbl = node.getTable();
     ColumnCombination nextNode(tbl);
     if (ctg[com] == (DEPENDENCY | CANDIDATE | MAX_OR_MIN)) {
         for (int i = 0; i < num_col; ++i) {
-            if (node[i] != 1 || RHS[i] == 1)
+            if (node[i] != 1 || RHS[i] == 1 || total[i] == 0)
                 continue;
             int v = com - (1 << i);
             if (ctg[v] == NONE || ctg[v] == NOT_VISITED) {
@@ -250,7 +249,7 @@ ColumnCombination pickNextNode(const ColumnCombination & node, const ColumnCombi
     }
     else if (ctg[com] == (CANDIDATE | MAX_OR_MIN)) {
         for (int i = 0; i < num_col; ++i) {
-            if (node[i] == 1 || RHS[i] == 1)
+            if (node[i] == 1 || RHS[i] == 1 || total[i] == 0)
                 continue;
             int v = com + (1 << i);
             if (ctg[v] == NONE || ctg[v] == NOT_VISITED) {
@@ -275,14 +274,15 @@ ColumnCombination pickNextNode(const ColumnCombination & node, const ColumnCombi
     }
 }
 
-vector<ColumnCombination> generateNextSeeds(vector<ColumnCombination> &minDep, vector<ColumnCombination> &maxNonDep, const ColumnCombination & target, int num_col, Table *tbl) {
+vector<ColumnCombination> generateNextSeeds(vector<ColumnCombination> &minDep, vector<ColumnCombination> &maxNonDep, const ColumnCombination & total, const ColumnCombination & target, int num_col, Table *tbl) {
     vector<ColumnCombination> seeds, newSeeds;
     for (auto mdp : maxNonDep) {
         ColumnCombination cmdp = mdp.complement();
         cmdp = cmdp / target;
+        cmdp = cmdp * total;
         if (seeds.size() == 0) {
             for (int i = 0; i < num_col; ++i) {
-                if (cmdp[i] == 1) {
+                if (cmdp[i] == 1 && total[i] != 0) {
                     seeds.push_back(ColumnCombination(1 << i, tbl));
                 }
             }
@@ -290,7 +290,7 @@ vector<ColumnCombination> generateNextSeeds(vector<ColumnCombination> &minDep, v
         else {
             for (auto dep : seeds) {
                 for (int i = 0; i < num_col; ++i) {
-                    if (cmdp[i] == 1) {
+                    if (cmdp[i] == 1 && total[i] != 0) {
                         ColumnCombination cc(dep);
                         cc.add(i);
                         newSeeds.push_back(cc);

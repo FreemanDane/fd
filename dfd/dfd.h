@@ -23,12 +23,12 @@ enum Category {
 
 vector<FunctionalDependency> dfdmain(const std::string & filename);
 vector<ColumnCombination> findLHSs(ColumnCombination RHS, ColumnCombination total, Partition *parts);
-bool isMinimal(const ColumnCombination &, const ColumnCombination &, Category *ctg, int num_col);
-bool isMaximal(const ColumnCombination &, const ColumnCombination &, Category *ctg, int num_col);
-void inferCategory(const ColumnCombination & left, const ColumnCombination & right, Category *ctg, int num_col);
+bool isMinimal(const ColumnCombination &, const ColumnCombination &, const ColumnCombination &, Category *ctg, int num_col);
+bool isMaximal(const ColumnCombination &, const ColumnCombination &, const ColumnCombination &, Category *ctg, int num_col);
+void inferCategory(const ColumnCombination & left, const ColumnCombination & right, const ColumnCombination & total, Category *ctg, int num_col);
 void computePartition(const ColumnCombination & left, const ColumnCombination & right, Partition *parts, Category *ctg, int num_col);
 void getPartition(const ColumnCombination & target, Partition *parts, int num_col);
-ColumnCombination pickNextNode(const ColumnCombination & node, const ColumnCombination & RHS, vector<ColumnCombination> seeds, Category *ctg, vector<ColumnCombination> &minDep, vector<ColumnCombination> &maxNonDep, int num_col);
-std::vector<ColumnCombination> generateNextSeeds(vector<ColumnCombination> &minDep, vector<ColumnCombination> &maxNonDep, const ColumnCombination & target, int num_col, Table *tbl);
+ColumnCombination pickNextNode(const ColumnCombination & node, const ColumnCombination & RHS, const ColumnCombination & total, vector<ColumnCombination> seeds, Category *ctg, vector<ColumnCombination> &minDep, vector<ColumnCombination> &maxNonDep, int num_col);
+std::vector<ColumnCombination> generateNextSeeds(vector<ColumnCombination> &minDep, vector<ColumnCombination> &maxNonDep, const ColumnCombination & target, const ColumnCombination & total, int num_col, Table *tbl);
 
 #endif //FD_DFD_H

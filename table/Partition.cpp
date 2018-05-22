@@ -5,6 +5,7 @@
 #include "Partition.h"
 #include <map>
 
+using std::map;
 using std::multimap;
 using std::pair;
 using std::make_pair;
@@ -38,33 +39,43 @@ Partition getPartition(int pos, const Table & tbl) {
 }
 
 Partition getPartition(const Partition & p1, const Partition & p2, const Table & tbl) {
-    vector<vector<int>> v1 = p1.parts, v2 = p2.parts;
     Partition result;
-    size_t s = 0;
-    for (auto vv1 : v1) {
-        for (auto vv2 : v2) {
-            vector<int> positions;
-            auto iter1 = vv1.begin();
-            auto iter2 = vv2.begin();
-            while (iter1 != vv1.end() && iter2 != vv2.end()) {
-                if (*iter1 < *iter2)
-                    ++iter1;
-                else if (*iter1 > *iter2)
-                    ++iter2;
-                else if (*iter1 == *iter2) {
-                    positions.push_back(*iter1);
-                    ++iter1;
-                    ++iter2;
-                }
-            }
-            if (positions.size() > 1) {
-                result.parts.push_back(positions);
-                s += positions.size();
+    vector<vector<int>> v;
+    int l = p1.parts.size();
+    int nrow = tbl.size();
+    int *t = new int[nrow];
+    for (int i = 0; i < nrow; ++i) {
+        t[i] = -1;
+    }
+    for (int i = 0; i < l; ++i) {
+        for (auto j : p1.parts[i]) {
+            t[j] = i;
+        }
+        vector<int> vv;
+        v.push_back(vv);
+    }
+    l = p2.parts.size();
+    for (int i = 0; i < l; ++i) {
+        for (auto j : p2.parts[i]) {
+            if (t[j] != -1 || t[j] < v.size()) {
+                v[t[j]].push_back(j);
             }
         }
+        for (auto j : p2.parts[i]) {
+            if (t[j] >= v.size())
+                continue;
+            if (v[t[j]].size() > 1) {
+                result.parts.push_back(v[t[j]]);
+            }
+            v[t[j]].clear();
+        }
     }
-    size_t num_data = tbl.size();
-    result.size = result.parts.size() + num_data - s;
+    delete [] t;
+    int hasCom = 0;
+    for (auto r : result.parts) {
+        hasCom += r.size();
+    }
+    result.size = nrow - hasCom + result.parts.size();
     return result;
 }
 

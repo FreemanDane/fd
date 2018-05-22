@@ -15,5 +15,4 @@ int main(int argc, char const *args[]) {
         fout << r << std::endl;
     }
     return 0;
-    return 0;
 }
