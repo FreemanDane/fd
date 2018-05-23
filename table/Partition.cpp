@@ -4,37 +4,41 @@
 
 #include "Partition.h"
 #include <map>
+#include <string>
 
 using std::map;
-using std::multimap;
 using std::pair;
 using std::make_pair;
+using std::string;
 
 Partition getPartition(int pos, const Table & tbl) {
-    multimap<Data, int> m;
-    vector<Data> keys;
-    size_t num_data = tbl.size();
-    for (int i = 0; i < num_data; ++i) {
-        Data d = tbl[i][pos];
-        if (m.find(d) == m.end()) {
-            keys.push_back(d);
-        }
-        m.insert(make_pair(d, i));
-    }
+    map<string, int> keys;
+    int nrow = tbl.size();
     Partition result;
-    for (Data & key : keys) {
-        vector<int> positions;
-        if (m.count(key) == 1) {
-            continue;
-        } else {
-            auto ranges = m.equal_range(key);
-            for (auto r = ranges.first; r != ranges.second; ++r) {
-                positions.push_back(r->second);
-            }
-            result.parts.push_back(positions);
+    int *t = new int[nrow];
+    int num_type = 0;
+    for (int i = 0; i < nrow; ++i) {
+        Data d = tbl[i][pos];
+        auto v = keys.find(d);
+        if (v == keys.end()) {
+            keys.insert(make_pair(d, num_type));
+            t[i] = num_type;
+            num_type++;
+        }
+        else {
+            t[i] = v->second;
         }
     }
-    result.size = keys.size();
+    vector<int> *vts = new vector<int>[num_type];
+    for (int i = 0; i < nrow; ++i) {
+        vts[t[i]].push_back(i);
+    }
+    for (int i = 0; i < num_type; ++i) {
+        if (vts[i].size() > 1) {
+            result.parts.push_back(vts[i]);
+        }
+    }
+    result.size = num_type;
     return result;
 }
 
