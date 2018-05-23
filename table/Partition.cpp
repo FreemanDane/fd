@@ -39,6 +39,8 @@ Partition getPartition(int pos, const Table & tbl) {
         }
     }
     result.size = num_type;
+    delete [] t;
+    delete [] vts;
     return result;
 }
 
