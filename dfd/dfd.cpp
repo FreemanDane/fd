@@ -55,7 +55,7 @@ vector<FunctionalDependency> dfdmain(const string & filename) {
     for (int i = 0; i < num_col; ++i) {
         ColumnCombination RHS = ColumnCombination(1 << i, &tbl);
         auto LHSs = findLHSs(RHS, total, parts);
-        cout << "find LHSs of " << RHS.getCombination() << std::endl;
+        cout << "find LHSs of " << i + 1 << std::endl;
         for (auto LHS : LHSs) {
             result.push_back(FunctionalDependency(LHS, RHS));
         }
@@ -179,7 +179,7 @@ void inferCategory(const ColumnCombination & left, const ColumnCombination & rig
 void getPartition(const ColumnCombination & target, Partition *parts, int num_col) {
     Table *tbl = target.getTable();
     int num_com = 1 << num_col;
-    for (int i = 1; i < num_com / 2; ++i) {
+    for (int i = 1; i < num_com; ++i) {
         int t1 = 1 << i;
         ColumnCombination c1(t1, tbl);
         if (!c1.isSubset(target))
@@ -235,17 +235,11 @@ ColumnCombination pickNextNode(const ColumnCombination & node, const ColumnCombi
                 continue;
             int v = com - (1 << i);
             if (ctg[v] == NONE || ctg[v] == NOT_VISITED) {
-                s.push_back(ColumnCombination(v, tbl));
+                nodeStack.push(node);
+                return ColumnCombination(v, tbl);
             }
         }
-        if (s.size() == 0) {
-            minDep.push_back(node);
-        } else {
-            int r = rand() % s.size();
-            nextNode = s[r];
-            nodeStack.push(node);
-            return nextNode;
-        }
+        minDep.push_back(node);
     }
     else if (ctg[com] == (CANDIDATE | MAX_OR_MIN)) {
         for (int i = 0; i < num_col; ++i) {
@@ -253,17 +247,11 @@ ColumnCombination pickNextNode(const ColumnCombination & node, const ColumnCombi
                 continue;
             int v = com + (1 << i);
             if (ctg[v] == NONE || ctg[v] == NOT_VISITED) {
-                s.push_back(ColumnCombination(v, tbl));
+                nodeStack.push(node);
+                return ColumnCombination(v, tbl);
             }
         }
-        if (s.size() == 0) {
-            maxNonDep.push_back(node);
-        } else {
-            int r = rand() % s.size();
-            nextNode = s[r];
-            nodeStack.push(node);
-            return nextNode;
-        }
+        maxNonDep.push_back(node);
     }
     if (nodeStack.size() == 0)
         return ColumnCombination(tbl);
