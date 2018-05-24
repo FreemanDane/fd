@@ -49,14 +49,9 @@ void TANE::compute() {
     Level L;
     L.l = 0;
     for(auto a : R) {
-        AttrIndexes a_set;
-        a_set.insert_into(a);
+        AttrIndexes a_set(1 << a);
         L.l_l.insert(a_set);
-    }
-    for (auto i : R) {
-        AttrIndexes i_index;
-        i_index.insert_into(i);
-        partition_map[i_index] = getPartition(i, table);
+        partition_map[a_set] = getPartition(a, table);
     }
     while (!L.l_l.empty()) {
         compute_dependencies(L);
@@ -65,26 +60,21 @@ void TANE::compute() {
     }
 }
 
-void TANE::compute_dependencies(Level &l) {
+void TANE::compute_dependencies(const Level &l) {
     for (auto x: l.l_l) {
         AttrIndexes temp;
-        bool first = true;
-        for(auto a : x) {
-            AttrIndexes x_except_a(x.index() ^ (1 << a));
-            if(first) {
-                temp = RHS_plus[x_except_a];
-                first = false;
-            }
-            else
-                temp = temp.intersection(RHS_plus[x_except_a]);
+        AttrIndexes x_except_a(x.index() ^ (1 << *x.begin()));
+        temp = RHS_plus[x_except_a];
+        for(auto a = std::next(x.begin()); a != x.end(); ++a) {
+            x_except_a = x.index() ^ (1 << *a);
+            temp = temp.intersection(RHS_plus[x_except_a]);
         }
         RHS_plus[x] = temp;
     }
     for (auto x: l.l_l) {
         AttrIndexes RHS_x_intersect_x = RHS_plus[x].intersection(x);
         for(auto a : RHS_x_intersect_x) {
-            AttrIndexes a_set;
-            a_set.insert_into(a);
+            AttrIndexes a_set(a);
             if(determine(x.difference(a_set), a_set)) {
                 results.push_back(Result(x.difference(a_set), a_set));
                 RHS_plus[x] = RHS_plus[x].difference(a_set);
@@ -141,7 +131,9 @@ bool TANE::is_prefix(const AttrIndexes& a, const AttrIndexes& b) {
 bool TANE::determine(const AttrIndexes& x, const AttrIndexes& y) {
     AttrIndexes x_union_y = x.merge(y);
     if (partition_map.find(x_union_y) == partition_map.end()) {
-        partition_map[x_union_y] = getPartition(partition_map[x], partition_map[y], table);
+        partition_map[x_union_y] = Partition();
+        Partition& x_union_partition = partition_map[x_union_y];
+        getPartition(partition_map[x], partition_map[y], table.size(), x_union_partition);
     }
     if(partition_map[x_union_y].size == partition_map[x].size)
         return true;

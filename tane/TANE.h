@@ -44,7 +44,7 @@ private:
     std::vector <Result> results;
     std::unordered_map <AttrIndexes, Partition, AttrIndexesHasher> partition_map;
 
-    void compute_dependencies(Level& l);
+    void compute_dependencies(const Level& l);
     void prune(Level& l);
     Level generate_next_level(const Level& L);
     bool is_prefix(const AttrIndexes& a, const AttrIndexes& b);
