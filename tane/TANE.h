@@ -33,22 +33,33 @@ public:
 class TANE {
 
 public:
-    TANE (Table& t);
+    TANE (Table& t, int thread_num = 1);
     void compute();
+    void compute_multithreading();
     void output_result(std::ostream& out);
 
 private:
+    typedef std::unordered_map <AttrIndexes, Partition, AttrIndexesHasher> PartitionMap;
     Table& table;
     std::unordered_map <AttrIndexes, AttrIndexes, AttrIndexesHasher> RHS_plus;
     AttrIndexes R;
     std::vector <Result> results;
-    std::unordered_map <AttrIndexes, Partition, AttrIndexesHasher> partition_map;
+    PartitionMap partition_map;
+    int thread_num;
 
     void compute_dependencies(const Level& l);
     void prune(Level& l);
     Level generate_next_level(const Level& L);
     bool is_prefix(const AttrIndexes& a, const AttrIndexes& b);
     bool determine(const AttrIndexes& x, const AttrIndexes& y);
+
+    typedef std::vector<AttrIndexes> Missions;
+    typedef Missions::iterator MissionsIter;
+    static void compute_single_partition(void* __this);
+    static void compute_single_partition_batch(MissionsIter begin, MissionsIter end, void* __this);
+    static void compute_fd_batch(MissionsIter begin, MissionsIter end, void* __this, std::vector <Result>& results);
+    static bool determine(const AttrIndexes& x, const AttrIndexes& y, int table_size, PartitionMap& partition_map);
+    static void compute_dependencies_multithreading(const Level& l, void* __this);
 };
 
 

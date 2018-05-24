@@ -29,6 +29,7 @@ int AttrIndexes::size() const {
         if(indexes & (1 << i))
             ++l;
     }
+    return l;
 }
 
 bool AttrIndexes::operator<(const AttrIndexes &a) const {

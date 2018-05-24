@@ -26,11 +26,19 @@ int main(int argc, char const *args[]) {
         std::cerr << "Expecting a '.txt' file\n";
         return 1;
     }
+    int thread_num;
+    if (argc == 4)
+        thread_num = std::stoi( args[3] );
+    else
+        thread_num = 1;
     std::string output_filename = filename.substr(0, filename.length() - 4) + "_result.txt";
     if(algorithm == "tane") {
         Table table = readData(filename);
-        TANE tane(table);
-        tane.compute();
+        TANE tane(table, thread_num);
+        if(thread_num > 1)
+            tane.compute_multithreading();
+        else
+            tane.compute();
         std::ofstream out(output_filename);
         tane.output_result(out);
         return 0;

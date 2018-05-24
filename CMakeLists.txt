@@ -12,3 +12,6 @@ add_subdirectory(tane)
 add_executable(fd main.cpp util.h)
 
 target_link_libraries(fd table dfd tane)
+
+find_package(Threads REQUIRED)
+target_link_libraries(fd Threads::Threads)
