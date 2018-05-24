@@ -5,7 +5,7 @@
 #ifndef FD_TANE_H
 #define FD_TANE_H
 
-#include "../table/table.h"
+#include "../table/Table.h"
 #include "../table/Partition.h"
 #include "../table/AttrIndexes.h"
 #include <unordered_map>
