@@ -18,9 +18,15 @@ Table readData(std::string filename) {
     while(std::getline(in, line)) {
         Row row;
         Data data;
-        std::stringstream row_stream(line);
-        while(std::getline(row_stream, data, ','))
-            row.push_back(data);
+        int start = 0, end = 0;
+        for(; end < line.size() - 1; ++end) {
+            if (line[end] == ',' && line[end + 1] != ' ') {
+                row.push_back(line.substr(start, end - start));
+                start = end + 1;
+            }
+        }
+        if(end != start)
+            row.push_back(line.substr(start, end - start + 1));
         table.push_back(row);
     }
     return table;
