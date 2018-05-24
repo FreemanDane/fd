@@ -7,21 +7,10 @@
 
 #include "../table/table.h"
 #include "../table/Partition.h"
+#include "../table/AttrIndexes.h"
 #include <unordered_map>
 #include <unordered_set>
 
-class AttrIndexes : public std::vector<int>{
-public:
-    AttrIndexes() = default;
-    void insert_into(int new_index);
-    AttrIndexes merge(const AttrIndexes& other) const;
-    AttrIndexes difference(const AttrIndexes& other) const;
-    AttrIndexes intersection(const AttrIndexes& other) const;
-};
-
-struct AttrIndexesHasher {
-    std::size_t operator()(AttrIndexes const& s) const;
-};
 
 struct Level {
     std::unordered_set <AttrIndexes, AttrIndexesHasher> l_l;
@@ -37,6 +26,7 @@ public:
 
     Result(const AttrIndexes& x, const AttrIndexes& y): x(x), y(y) {}
     bool operator<(const Result &r) const;
+    bool operator==(const Result &r) const;
     friend std::ostream& operator<<(std::ostream& out, const Result& r);
 };
 

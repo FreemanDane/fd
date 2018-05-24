@@ -9,6 +9,6 @@ add_subdirectory(table)
 add_subdirectory(dfd)
 add_subdirectory(tane)
 
-add_executable(fd main.cpp util.h)
+add_executable(fd main.cpp util.h table/AttrIndexes.cpp table/AttrIndexes.h)
 
 target_link_libraries(fd table dfd tane)

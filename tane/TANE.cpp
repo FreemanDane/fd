@@ -10,55 +10,16 @@
 #include "../util.h"
 
 
-void AttrIndexes::insert_into(int new_index) {
-    auto it = std::lower_bound( begin(), end(), new_index );
-    insert(it, new_index);
-}
-
-AttrIndexes AttrIndexes::merge(const AttrIndexes& other) const {
-    AttrIndexes ret;
-    std::set_union(begin(), end(), other.begin(), other.end(),
-                   std::inserter(ret, ret.begin()));
-    return ret;
-}
-
-AttrIndexes AttrIndexes::difference(const AttrIndexes &other) const {
-    AttrIndexes ret;
-    std::set_difference(begin(), end(), other.begin(), other.end(),
-                        std::inserter(ret, ret.begin()));
-    return ret;
-}
-
-AttrIndexes AttrIndexes::intersection(const AttrIndexes &other) const {
-    AttrIndexes ret;
-    std::set_intersection(begin(), end(), other.begin(), other.end(),
-                          std::inserter(ret, ret.begin()));
-    return ret;
-}
-
-std::size_t AttrIndexesHasher::operator()(AttrIndexes const& a) const {
-    return std::hash<std::string>()(join<int>(a, ","));
-}
-
 bool Result::operator<(const Result &r) const {
-    int i;
-    for(i = 0; i < x.size() && i < r.x.size(); ++i) {
-        if (x[i] < r.x[i])
-            return true;
-        else if (x[i] > r.x[i])
-            return false;
-    }
-    if(i < r.x.size())
+    if (x < r.x)
         return true;
-    for(i = 0; i < y.size() && i < r.y.size(); ++i) {
-        if (y[i] < r.y[i])
-            return true;
-        else if (y[i] > r.y[i])
-            return false;
-    }
-    if(i < r.y.size())
+    else if (x.index() == r.x.index() && y < r.y)
         return true;
     return false;
+}
+
+bool Result::operator==(const Result &r) const {
+    return x == r.x && y == r.y;
 }
 
 std::ostream& operator<<(std::ostream &out, const Result &r) {
@@ -109,9 +70,7 @@ void TANE::compute_dependencies(Level &l) {
         AttrIndexes temp;
         bool first = true;
         for(auto a : x) {
-            AttrIndexes x_except_a, a_set;
-            a_set.insert_into(a);
-            x_except_a = x.difference(a_set);
+            AttrIndexes x_except_a(x.index() ^ (1 << a));
             if(first) {
                 temp = RHS_plus[x_except_a];
                 first = false;
@@ -155,9 +114,7 @@ Level TANE::generate_next_level(const Level &L) {
                 AttrIndexes x = y -> merge(*z);
                 bool flag = true;
                 for(auto a : x) {
-                    AttrIndexes x_except_a, a_set;
-                    a_set.insert_into(a);
-                    x_except_a = x.difference(a_set);
+                    AttrIndexes x_except_a(x.index() ^ (1 << a));
                     if(L.l_l.find(x_except_a) == L.l_l.end()) {
                         flag = false;
                         break;
@@ -172,8 +129,10 @@ Level TANE::generate_next_level(const Level &L) {
 }
 
 bool TANE::is_prefix(const AttrIndexes& a, const AttrIndexes& b) {
-    for (int i = 0; i < a.size() - 1; ++i) {
-        if (a[i] != b[i])
+    auto i = a.begin();
+    auto j = b.begin();
+    for (; std::next(i) != a.end(); ++i, ++j) {
+        if (*i != *j)
             return false;
     }
     return true;

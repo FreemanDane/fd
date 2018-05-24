@@ -11,6 +11,8 @@
 
 Table readData(std::string filename) {
     std::ifstream in(filename);
+    if(!in)
+        throw "File not exists";
     Table table;
     std::string line;
     while(std::getline(in, line)) {
