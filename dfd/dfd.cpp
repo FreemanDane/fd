@@ -30,7 +30,7 @@ vector<FunctionalDependency> dfdmain(const string & filename, int p_num) {
     vector<FunctionalDependency> result;
     ColumnCombination total(num_com - 1, &tbl);
     PartitionM *parts = new PartitionM[num_com];
-    thread *thds[num_threads];
+    thread **thds = new thread*[num_threads];
     for (int i = 0; i < num_com; ++i) {
         parts[i].size = 0;
     }
@@ -74,6 +74,7 @@ vector<FunctionalDependency> dfdmain(const string & filename, int p_num) {
         delete thds[i];
     }
     delete [] parts;
+    delete [] thds;
     return result;
 }
 
@@ -220,8 +221,10 @@ void getPartition(const ColumnCombination & target, PartitionM *parts, int num_c
         else
             p = getPartitionM(p, parts[index], *tbl);
     }
-    lock_guard<mutex> lck(parts[target.getCombination()].m);
-    parts[target.getCombination()] = p;
+    {
+        lock_guard<mutex> lck(parts[target.getCombination()].m);
+        parts[target.getCombination()] = p;
+    }
 }
 
 void computePartition(const ColumnCombination & left, const ColumnCombination & right, PartitionM *parts, Category *ctg, int num_col){
@@ -363,9 +366,11 @@ void rangeFindLHS(ColumnCombination total, int start, int end, PartitionM *parts
             lock_guard<mutex> io_lck(io_lock);
             cout << "find LHSs of " << i + 1 << std::endl;
         }
-        for (auto LHS : LHSs) { ;
-            lock_guard<mutex> result_lck(vector_lock);
-            result.push_back(FunctionalDependency(LHS, RHS));
+        for (auto LHS : LHSs) {
+            {
+                lock_guard<mutex> result_lck(vector_lock);
+                result.push_back(FunctionalDependency(LHS, RHS));
+            }
         }
     }
 }

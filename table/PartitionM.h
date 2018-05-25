@@ -16,17 +16,14 @@ struct PartitionM
     std::mutex m;
     PartitionM() = default;
     PartitionM(PartitionM & p) {
-        std::lock_guard<std::mutex> l(p.m);
         size = p.size;
         parts = p.parts;
     }
     PartitionM(PartitionM && p) {
-        std::lock_guard<std::mutex> l(p.m);
         size = p.size;
         parts = p.parts;
     }
     PartitionM& operator=(PartitionM p) {
-        std::lock_guard<std::mutex> l(p.m);
         size = p.size;
         parts = p.parts;
         return *this;

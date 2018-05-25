@@ -22,7 +22,7 @@ public:
     int size() const;
     bool operator<(const AttrIndexes &a) const;
     bool operator==(const AttrIndexes &a) const;
-    bool operator=(const int &i) { this->indexes = i; }
+    void operator=(const int &i) { this->indexes = i; }
 
     class iterator
     {
