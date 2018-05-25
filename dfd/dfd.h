@@ -7,11 +7,11 @@
 
 #include <vector>
 #include <string>
+#include <stack>
 #include "../table/Table.h"
 #include "../table/ColumnCombination.h"
-#include "../table/Partition.h"
+#include "../table/PartitionM.h"
 #include "../table/FunctionalDependency.h"
-
 
 enum Category {
     NOT_VISITED = 0x10,
@@ -21,14 +21,15 @@ enum Category {
     MAX_OR_MIN = 0x8
 };
 
-vector<FunctionalDependency> dfdmain(const std::string & filename);
-vector<ColumnCombination> findLHSs(ColumnCombination RHS, ColumnCombination total, Partition *parts);
+std::vector<FunctionalDependency> dfdmain(const std::string & filename, int p_num);
+std::vector<ColumnCombination> findLHSs(ColumnCombination RHS, ColumnCombination total, PartitionM *parts);
 bool isMinimal(const ColumnCombination &, const ColumnCombination &, const ColumnCombination &, Category *ctg, int num_col);
 bool isMaximal(const ColumnCombination &, const ColumnCombination &, const ColumnCombination &, Category *ctg, int num_col);
 void inferCategory(const ColumnCombination & left, const ColumnCombination & right, const ColumnCombination & total, Category *ctg, int num_col);
-void computePartition(const ColumnCombination & left, const ColumnCombination & right, Partition *parts, Category *ctg, int num_col);
-void getPartition(const ColumnCombination & target, Partition *parts, int num_col);
-ColumnCombination pickNextNode(const ColumnCombination & node, const ColumnCombination & RHS, const ColumnCombination & total, vector<ColumnCombination> seeds, Category *ctg, vector<ColumnCombination> &minDep, vector<ColumnCombination> &maxNonDep, int num_col);
-std::vector<ColumnCombination> generateNextSeeds(vector<ColumnCombination> &minDep, vector<ColumnCombination> &maxNonDep, const ColumnCombination & target, const ColumnCombination & total, int num_col, Table *tbl);
+void computePartition(const ColumnCombination & left, const ColumnCombination & right, PartitionM *parts, Category *ctg, int num_col);
+void getPartition(const ColumnCombination & target, PartitionM *parts, int num_col);
+ColumnCombination pickNextNode(const ColumnCombination & node, const ColumnCombination & RHS, const ColumnCombination & total, std::vector<ColumnCombination> seeds, Category *ctg, std::vector<ColumnCombination> &minDep, std::vector<ColumnCombination> &maxNonDep, int num_col, std::stack<ColumnCombination> &nodeStack);
+std::vector<ColumnCombination> generateNextSeeds(std::vector<ColumnCombination> &minDep, std::vector<ColumnCombination> &maxNonDep, const ColumnCombination & target, const ColumnCombination & total, int num_col, Table *tbl);
+void rangeFindLHS(ColumnCombination total, int start, int end, PartitionM *parts, Table *tbl, std::vector<FunctionalDependency> & result);
 
 #endif //FD_DFD_H

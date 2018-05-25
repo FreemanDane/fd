@@ -1,0 +1,2 @@
+/usr/bin/ar qc libtane.a  CMakeFiles/tane.dir/TANE.cpp.o
+/usr/bin/ranlib libtane.a

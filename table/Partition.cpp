@@ -1,18 +1,15 @@
-//
-// Created by freeman on 5/19/18.
-//
-
 #include "Partition.h"
-#include <map>
+#include <unordered_map>
 #include <string>
 
-using std::map;
+using std::unordered_map;
 using std::pair;
 using std::make_pair;
+using std::vector;
 using std::string;
 
 Partition getPartition(int pos, const Table & tbl) {
-    map<string, int> keys;
+    unordered_map<string, int> keys;
     int nrow = tbl.size();
     Partition result;
     int *t = new int[nrow];
@@ -45,7 +42,7 @@ Partition getPartition(int pos, const Table & tbl) {
 }
 
 void getPartition(int pos, const Table & tbl, Partition& ret) {
-    map<string, int> keys;
+    unordered_map<string, int> keys;
     int nrow = tbl.size();
     int *t = new int[nrow];
     int num_type = 0;

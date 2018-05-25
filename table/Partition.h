@@ -6,13 +6,13 @@
 #define FD_PARTITION_H
 
 #include <vector>
+#include <mutex>
 #include "Table.h"
-using std::vector;
 
 struct Partition
 {
     size_t size;
-    vector<vector<int>> parts;
+    std::vector<std::vector<int>> parts;
 };
 
 Partition getPartition(int pos, const Table & tbl);

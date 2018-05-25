@@ -43,7 +43,7 @@ int main(int argc, char const *args[]) {
         tane.output_result(out);
         return 0;
     } else if(algorithm == "dfd") {
-        auto result = dfdmain(filename);
+        auto result = dfdmain(filename, thread_num);
         ofstream fout(output_filename);
         std::sort(result.begin(),result.end());
         for (auto r : result) {
