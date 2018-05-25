@@ -1,2 +1,0 @@
-/usr/bin/ar qc libdfd.a  CMakeFiles/dfd.dir/dfd.cpp.o
-/usr/bin/ranlib libdfd.a

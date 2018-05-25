@@ -1,2 +1,0 @@
-/usr/bin/ar qc libtable.a  CMakeFiles/table.dir/AttrIndexes.cpp.o CMakeFiles/table.dir/ColumnCombination.cpp.o CMakeFiles/table.dir/FunctionalDependency.cpp.o CMakeFiles/table.dir/Partition.cpp.o CMakeFiles/table.dir/PartitionM.cpp.o CMakeFiles/table.dir/Table.cpp.o
-/usr/bin/ranlib libtable.a

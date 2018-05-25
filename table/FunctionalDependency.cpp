@@ -38,6 +38,13 @@ ofstream & operator << (ofstream & fout, FunctionalDependency fd){
 bool operator < (const FunctionalDependency & f1, const FunctionalDependency & f2) {
     auto msize = f1.left.maxsize();
     for (int i = 0; i < msize; ++i) {
+        int c1 = f1.left.getCombination(), c2 = f2.left.getCombination();
+        if ((c1 >> i) == 0 && (c2 >> i) != 0) {
+            return true;
+        }
+        if ((c2 >> i) == 0 && (c1 >> i) != 0) {
+            return false;
+        }
         if (f1.left[i] == 0 && f2.left[i] != 0) {
             return false;
         } else if (f1.left[i] != 0 && f2.left[i] == 0) {
