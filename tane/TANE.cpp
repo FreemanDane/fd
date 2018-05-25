@@ -137,7 +137,28 @@ bool TANE::determine(const AttrIndexes& x, const AttrIndexes& y) {
     if (partition_map.find(x_union_y) == partition_map.end()) {
         partition_map[x_union_y] = Partition();
         Partition& x_union_partition = partition_map[x_union_y];
-        getPartition(partition_map[x], partition_map[y], table.size(), x_union_partition);
+
+        AttrIndexes first_sub(0), second_sub(0);
+        for(auto i: x_union_y) {
+            AttrIndexes except_i(x_union_y.index() ^ (1 << i));
+            if (first_sub.index() == 0) {
+                first_sub = except_i;
+                continue;
+            }
+            if(partition_map[except_i].size < partition_map[first_sub].size) {
+                second_sub = first_sub;
+                first_sub = except_i;
+                continue;
+            }
+            if (second_sub.index() == 0) {
+                second_sub = except_i;
+                continue;
+            }
+            if(partition_map[except_i].size < partition_map[second_sub].size) {
+                second_sub = except_i;
+            }
+        }
+        getPartition(partition_map[first_sub], partition_map[second_sub], table.size(), x_union_partition);
     }
     if(partition_map[x_union_y].size == partition_map[x].size)
         return true;
@@ -252,9 +273,29 @@ void TANE::compute_fd_batch(TANE::MissionsIter begin, TANE::MissionsIter end, vo
 bool TANE::determine(const AttrIndexes& x, const AttrIndexes& y, int table_size, TANE::PartitionMap& partition_map){
     AttrIndexes x_union_y = x.merge(y);
     if (partition_map[x_union_y].size == 0) {
-        partition_map[x_union_y] = Partition();
         Partition& x_union_partition = partition_map[x_union_y];
-        getPartition(partition_map[x], partition_map[y], table_size, x_union_partition);
+
+        AttrIndexes first_sub(0), second_sub(0);
+        for(auto i: x_union_y) {
+            AttrIndexes except_i(x_union_y.index() ^ (1 << i));
+            if (first_sub.index() == 0) {
+                first_sub = except_i;
+                continue;
+            }
+            if(partition_map[except_i].size < partition_map[first_sub].size) {
+                second_sub = first_sub;
+                first_sub = except_i;
+                continue;
+            }
+            if (second_sub.index() == 0) {
+                second_sub = except_i;
+                continue;
+            }
+            if(partition_map[except_i].size < partition_map[second_sub].size) {
+                second_sub = except_i;
+            }
+        }
+        getPartition(partition_map[first_sub], partition_map[second_sub], table_size, x_union_partition);
     }
     if(partition_map[x_union_y].size == partition_map[x].size)
         return true;
